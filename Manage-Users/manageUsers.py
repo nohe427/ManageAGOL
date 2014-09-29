@@ -28,7 +28,7 @@ user = 'Karate_Kelly'#raw_input("Admin username:")
 pw  = 'Browncow1'#raw_input("Password:")
 
 #open file
-fileLoc = 'c:\python\manage_AgolUser.csv' #'raw_input("Put in the file path to store the data here \nExample: C:\Documents\FILE.csv \n")
+fileLoc = '\\\\kellyg\python\manage_AgolUser.csv' #'raw_input("Put in the file path to store the data here \nExample: C:\Documents\FILE.csv \n")
 f=open(fileLoc, "r")
 
 # Function to return a token for this session
@@ -46,6 +46,57 @@ def accountInfo(token):
     response = requests.get(URL)
     jres = json.loads(response.text)
     return jres['urlKey'], jres['name'], jres['user']['fullName'], jres['user']['email']
+
+def roleID(roleName, token):
+    roleUrl= 'http://www.arcgis.com/sharing/rest/portals/self/roles?f=json&token=' + token
+    response = requests.get(roleUrl)
+    jres = json.loads(response.text)
+    roleID = 'blank'
+    for item in jres['roles']:
+        #print roleName
+        if roleName.lower() == item['name'].lower():
+            #print roleName.lower() +item['name'].lower()
+            roleID = item['id']
+        elif roleName.lower() == 'administrator':
+            roleID= 'account_admin'
+        elif roleName.lower() == 'publisher':
+            roleID= 'account_publisher'
+        elif roleName.lower() == 'user':
+            roleID= 'account_user'
+        #else:
+            #print 'there is no matching role for ' + roleName
+    return roleID
+
+def inviteUsers(f,urlKey, token,name, fullName, email):
+    #invite users from spreadsheet
+    print f
+    for line in f.readlines()[1:9]:
+        print line
+        splitstring = line.split(",")
+        invitelist =[]
+        print splitstring
+
+        if splitstring[6].lower() == 'invite\n':
+            print splitstring[0]
+            invitelist.append(splitstring[0])
+            rID = roleID(splitstring[5], token)
+            url = 'http://{}.maps.arcgis.com/sharing/rest/portals/self/invite'.format(urlKey)
+            subject = 'An invitation to join an ArcGIS Online Organization, ' + name + '. DO NOT REPLY'
+            text = '<html><body><p>' + fullName+ ' has invited you to join an ArcGIS Online Organization, ' +name + '. Please click this link to join:<br><a href="https://www.arcgis.com/home/signin.html?invitation=@@invitation.id@@">https://www.arcgis.com/home/signin.html?invitation=@@invitation.id@@</a></p><p>If you have difficulty signing in, please email your administrator at '+ email+ '. Be sure to include a description of the problem, your username, the error message, and a screenshot.</p><p>For your reference, you can access the home page of the organization here: <br>http://'+urlKey +'.maps.arcgis.com/home/</p><p>This link will expire in two weeks.</p><p style="color:gray;">This is an automated email, please do not reply.</p></body></html>'
+            #send without sending an email notification to user
+            #invitationlist = '{"invitations":[{"username":"'+splitstring[0]+'", "password":"Password123", "firstname":"' + splitstring[3]+'","lastname":"'+ splitstring[4]+'","fullname":"'+splitstring[3] + ' ' + splitstring[4]+'","email":"'+splitstring[2]+'","role":"' +rID +'"}]}'
+            #Send invitations to preestablished user names.
+            #invitationlist = '{"invitations":[{"username":"'+splitstring[0]+'", "firstname":"' + splitstring[3]+'","lastname":"'+ splitstring[4]+'","fullname":"'+splitstring[3] + ' ' + splitstring[4]+'","email":"'+splitstring[2]+'","role":"' +rID +'"}]}'
+            #Send invitations for existing users.
+            #invitationlist = '{"invitations":[{"email":"'+splitstring[2]+'","role":"' +rID +'"}]}'
+            #data={'subject':subject, 'html':text, 'invitationlist':invitationlist,'f':'json', 'token':token}
+            #jres = requests.post(url, data=data, verify=False).json()
+        return invitelist
+
+def updateUsers():
+    print 'fun'
+
+
 #get token and URL Key
 token = getToken(user, pw)
 aInfo = accountInfo(token)
@@ -53,18 +104,7 @@ urlKey = aInfo[0]
 name= aInfo[1]
 fullName = aInfo[2]
 email = aInfo[3]
-roleID = 'jdsfhskhte'
+invitelist = inviteUsers(f,urlKey, token,name, fullName, email)
 
-print urlKey + name + fullName
+#print urlKey + name + fullName
 
-#get list of users to be removed
-for line in f.readlines()[1:]:
-    splitstring = line.split(",")
-    if splitstring[7] == 'Invite':
-        url = 'http://ess.maps.arcgis.com/sharing/rest/portals/self/invite'
-        subject = 'An invitation to join an ArcGIS Online Organization, ' + name + ' Esri Support Services. DO NOT REPLY'
-        text = '<html><body><p>' + fullName+ ' has invited you to join an ArcGIS Online Organization, ' +name + '. Please click this link to join:<br><a href="https://www.arcgis.com/home/signin.html?invitation=@@invitation.id@@">https://www.arcgis.com/home/signin.html?invitation=@@invitation.id@@</a></p><p>If you have difficulty signing in, please email your administrator at '+ email+ '. Be sure to include a description of the problem, your username, the error message, and a screenshot.</p><p>For your reference, you can access the home page of the organization here: <br>http://'+urlKey +'.maps.arcgis.com/home/</p><p>This link will expire in two weeks.</p><p style="color:gray;">This is an automated email, please do not reply.</p></body></html>'
-        invitationlist = {"invitations":[{"username":"'+splitstring[0]+'", "password":"'+splitstring[1]+'", "firstname":"' + splitstring[4]+'","lastname":"'+ splitstring[5]+'","fullname":"'splitstring[4] + " " + splitstring[5]+'","email":"'+splitstring[2]+'","role":"' +roleID +'"}]}
-        print invitationlist
-         # data={'subject':subject, 'html':text, 'invitationlist':invitationlist,'f':'json', 'token':token}
-          #jres = requests.post(url, data=data, verify=False).json()

@@ -77,39 +77,56 @@ def inviteUsers(f,urlKey, token,name, fullName, email):
     #invite users from spreadsheet
     invitelist =[]
     for line in f.readlines()[2:]:
-        print line
         splitstring = line.split(",")
         print splitstring
 
     #Invite Users
         if splitstring[6].lower() == 'invite\n':
             print splitstring[0]
-            invitelist.append(splitstring[0])
+            invitelist.append('"'+splitstring[0]+'"')
             rID = roleID(splitstring[5], token)
             url = 'http://{}.maps.arcgis.com/sharing/rest/portals/self/invite'.format(urlKey)
             subject = 'An invitation to join an ArcGIS Online Organization, ' + name + '. DO NOT REPLY'
             text = '<html><body><p>' + fullName+ ' has invited you to join an ArcGIS Online Organization, ' +name + '. Please click this link to join:<br><a href="https://www.arcgis.com/home/signin.html?invitation=@@invitation.id@@">https://www.arcgis.com/home/signin.html?invitation=@@invitation.id@@</a></p><p>If you have difficulty signing in, please email your administrator at '+ email+ '. Be sure to include a description of the problem, your username, the error message, and a screenshot.</p><p>For your reference, you can access the home page of the organization here: <br>http://'+urlKey +'.maps.arcgis.com/home/</p><p>This link will expire in two weeks.</p><p style="color:gray;">This is an automated email, please do not reply.</p></body></html>'
             #send without sending an email notification to user
             invitationlist = '{"invitations":[{"username":"'+splitstring[0]+'", "password":"Password123", "firstname":"' + splitstring[3]+'","lastname":"'+ splitstring[4]+'","fullname":"'+splitstring[3] + ' ' + splitstring[4]+'","email":"'+splitstring[2]+'","role":"' +rID +'"}]}'
+            print invitationlist
+            data={'subject':subject, 'html':text, 'invitationlist':invitationlist,'f':'json', 'token':token}
+            jres = requests.post(url, data=data, verify=False).json()
+
             #Send invitations to preestablished user names.
             #invitationlist = '{"invitations":[{"username":"'+splitstring[0]+'", "firstname":"' + splitstring[3]+'","lastname":"'+ splitstring[4]+'","fullname":"'+splitstring[3] + ' ' + splitstring[4]+'","email":"'+splitstring[2]+'","role":"' +rID +'"}]}'
             #Send invitations for existing users.
             #invitationlist = '{"invitations":[{"email":"'+splitstring[2]+'","role":"' +rID +'"}]}'
-            data={'subject':subject, 'html':text, 'invitationlist':invitationlist,'f':'json', 'token':token}
-            jres = requests.post(url, data=data, verify=False).json()
 
     #format Users to have contact name, myesri access, public
-            userURL ='https://{}.maps.arcgis.com/sharing/rest/community/users/{}/update'.format(URLKey, splitstring[0])
+            userURL ='https://{}.maps.arcgis.com/sharing/rest/community/users/{}/update'.format(urlKey, splitstring[0])
             data = {'f':'json','usertype':'both','description': splitstring[1], 'access':'public','token':token}
-            response = sendRequest(userURL,urllib.urlencode(data))
+            response = requests.post(userURL, data=data, verify=False).json()
             print response
 
-            #response = requests.post(userURL, data=data , verify=False)
+            #update csv so staus isn't invite
 
-    #return invitelist,
+    return invitelist
+
+
+def updateUser(token, urlKey, invitelist):
+    #  give new users Pro Entitlements
+       proUrl= 'http://{}.maps.arcgis.com/sharing/rest/content/listings/2d2a9c99bb2a43548c31cd8e32217af6/provisionUserEntitlements'.format(urlKey)
+       data = {'f':'json', 'token':token ,'userEntitlements':'{"users":'+str(invitelist)+',"entitlements":["desktopAdvN","spatialAnalystN","3DAnalystN","networkAnalystN","geostatAnalystN","dataReviewerN","workflowMgrN","dataInteropN"]}'}
+       response = requests.post(proUrl, data=data, verify=False).json()
+       print response
+
+       for user in invitelist:
+         updateURL = 'http://{}.maps.arcgis.com/sharing/rest/portals/self/updateUserRole'.format(urlKey)
+         data ={'f':'json', 'token':token ,'role':'account_admin'}
+         response = requests.post(updateUrl, data=data, verify=False).json()
+         print response
 
 
 
+
+#makes all users administrators
 
 
 
@@ -122,6 +139,7 @@ name= aInfo[1]
 fullName = aInfo[2]
 email = aInfo[3]
 invitelist = inviteUsers(f,urlKey, token,name, fullName, email)
+#updateUser())
 
 #print urlKey + name + fullName
 ##invitelist =[]

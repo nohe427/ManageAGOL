@@ -15,11 +15,13 @@ def updateUser(line):
 
 if __name__ == "__main__":
 
-    CSV = r""
+    CSV = r"\\kellyg\python\manage_AgolUser.csv"
     openedfile = open(CSV, 'r')
     openedfile.readline()
     openedfile.readline()
 
-    for line in openedfile:
-        line = readLine(openedfile)
-        inviteUser(line)
+    while True:
+      line = readLine(openedfile)
+      inviteUser(line)
+      if not line:
+        break

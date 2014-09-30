@@ -83,7 +83,7 @@ def inviteUsers(f,urlKey, token,name, fullName, email):
     #Invite Users
         if splitstring[6].lower() == 'invite\n':
             print splitstring[0]
-            invitelist.append('"'+splitstring[0]+'"')
+            invitelist.append(splitstring[0])
             rID = roleID(splitstring[5], token)
             url = 'http://{}.maps.arcgis.com/sharing/rest/portals/self/invite'.format(urlKey)
             subject = 'An invitation to join an ArcGIS Online Organization, ' + name + '. DO NOT REPLY'
@@ -101,7 +101,8 @@ def inviteUsers(f,urlKey, token,name, fullName, email):
 
     #format Users to have contact name, myesri access, public
             userURL ='https://{}.maps.arcgis.com/sharing/rest/community/users/{}/update'.format(urlKey, splitstring[0])
-            data = {'f':'json','usertype':'both','description': splitstring[1], 'access':'public','token':token}
+            #data = {'f':'json','usertype':'both','description': splitstring[1], 'access':'public','token':token}
+            data = {'f':'json','description': splitstring[1], 'access':'public','token':token}
             response = requests.post(userURL, data=data, verify=False).json()
             print response
 
@@ -110,7 +111,7 @@ def inviteUsers(f,urlKey, token,name, fullName, email):
     return invitelist
 
 
-def updateUser(token, urlKey, invitelist):
+def updateUser():
     #  give new users Pro Entitlements
        proUrl= 'http://{}.maps.arcgis.com/sharing/rest/content/listings/2d2a9c99bb2a43548c31cd8e32217af6/provisionUserEntitlements'.format(urlKey)
        data = {'f':'json', 'token':token ,'userEntitlements':'{"users":'+str(invitelist)+',"entitlements":["desktopAdvN","spatialAnalystN","3DAnalystN","networkAnalystN","geostatAnalystN","dataReviewerN","workflowMgrN","dataInteropN"]}'}
@@ -119,8 +120,8 @@ def updateUser(token, urlKey, invitelist):
 
        for user in invitelist:
          updateURL = 'http://{}.maps.arcgis.com/sharing/rest/portals/self/updateUserRole'.format(urlKey)
-         data ={'f':'json', 'token':token ,'role':'account_admin'}
-         response = requests.post(updateUrl, data=data, verify=False).json()
+         data ={'f':'json', 'token':token ,'user':user,'role':'account_admin'}
+         response = requests.post(updateURL, data=data, verify=False).json()
          print response
 
 
@@ -139,7 +140,7 @@ name= aInfo[1]
 fullName = aInfo[2]
 email = aInfo[3]
 invitelist = inviteUsers(f,urlKey, token,name, fullName, email)
-#updateUser())
+updateUser()
 
 #print urlKey + name + fullName
 ##invitelist =[]

@@ -52,12 +52,28 @@ def roleID(roleName, token):
 
 def readLine(openedfile):
     line = openedfile.readline()
+    #line = line.rstrip('\n')
+    print line
     splitstring = line.split(",")
     return splitstring
 
 
+if __name__ == "__main__":
 
+    CSV = r"\\kellyg\python\manage_AgolUser.csv"
+    openedfile = open(CSV, 'r')
+    openedfile.readline()
+    openedfile.readline()
+    t=True
 
+    while t == True:
+        line = readLine(openedfile)
+        print len(line)
+        if len(line)<0:
+            t =False
+        else:
+            invitelist = inviteUsers(line)
+    #return line
 
 def inviteUsers(line):
     #invite users from spreadsheet
@@ -65,28 +81,28 @@ def inviteUsers(line):
     print line
 
     #Invite Users
-    if splitstring[6].lower() == 'invite\n':
-        print splitstring[0]
-        invitelist.append(splitstring[0])
-        rID = roleID(splitstring[5], token)
+    if line[6].lower() == 'invite':
+        print line[0]
+        invitelist.append(line[0])
+        rID = roleID(line[5], token)
         url = 'http://{}.maps.arcgis.com/sharing/rest/portals/self/invite'.format(urlKey)
         subject = 'An invitation to join an ArcGIS Online Organization, ' + orgName + '. DO NOT REPLY'
         text = '<html><body><p>' + orgFullName+ ' has invited you to join an ArcGIS Online Organization, ' +orgName + '. Please click this link to join:<br><a href="https://www.arcgis.com/home/signin.html?invitation=@@invitation.id@@">https://www.arcgis.com/home/signin.html?invitation=@@invitation.id@@</a></p><p>If you have difficulty signing in, please email your administrator at '+ adminEmail+ '. Be sure to include a description of the problem, your username, the error message, and a screenshot.</p><p>For your reference, you can access the home page of the organization here: <br>http://'+urlKey +'.maps.arcgis.com/home/</p><p>This link will expire in two weeks.</p><p style="color:gray;">This is an automated email, please do not reply.</p></body></html>'
         #send without sending an email notification to user
-        invitationlist = '{"invitations":[{"username":"'+splitstring[0]+'", "password":"Password123", "firstname":"' + splitstring[3]+'","lastname":"'+ splitstring[4]+'","fullname":"'+splitstring[3] + ' ' + splitstring[4]+'","email":"'+splitstring[2]+'","role":"' +rID +'"}]}'
+        invitationlist = '{"invitations":[{"username":"'+line[0]+'", "password":"Password123", "firstname":"' + line[3]+'","lastname":"'+ line[4]+'","fullname":"'+line[3] + ' ' + line[4]+'","email":"'+line[2]+'","role":"' +rID +'"}]}'
         print invitationlist
         data={'subject':subject, 'html':text, 'invitationlist':invitationlist,'f':'json', 'token':token}
-        jres = requests.post(url, data=data, verify=False).json()
+        #jres = requests.post(url, data=data, verify=False).json()
 
         #Send invitations to preestablished user names.
-        #invitationlist = '{"invitations":[{"username":"'+splitstring[0]+'", "firstname":"' + splitstring[3]+'","lastname":"'+ splitstring[4]+'","fullname":"'+splitstring[3] + ' ' + splitstring[4]+'","email":"'+splitstring[2]+'","role":"' +rID +'"}]}'
+        #invitationlist = '{"invitations":[{"username":"'+line[0]+'", "firstname":"' + line[3]+'","lastname":"'+ line[4]+'","fullname":"'+line[3] + ' ' + line[4]+'","email":"'+line[2]+'","role":"' +rID +'"}]}'
         #Send invitations for existing users.
-        #invitationlist = '{"invitations":[{"email":"'+splitstring[2]+'","role":"' +rID +'"}]}'
+        #invitationlist = '{"invitations":[{"email":"'+line[2]+'","role":"' +rID +'"}]}'
 
 #format Users to have contact name, myesri access, public
-        userURL ='https://{}.maps.arcgis.com/sharing/rest/community/users/{}/update'.format(urlKey, splitstring[0])
-        #data = {'f':'json','usertype':'both','description': splitstring[1], 'access':'public','token':token}
-        data = {'f':'json','description': splitstring[1], 'access':'public','token':token}
+        userURL ='https://{}.maps.arcgis.com/sharing/rest/community/users/{}/update'.format(urlKey, line[0])
+        #data = {'f':'json','usertype':'both','description': line[1], 'access':'public','token':token}
+        data = {'f':'json','description': line[1], 'access':'public','token':token}
         response = requests.post(userURL, data=data, verify=False).json()
         print response
 
@@ -125,14 +141,22 @@ urlKey = aInfo[0]
 orgName= aInfo[1]
 orgFullName = aInfo[2]
 adminEmail = aInfo[3]
-CSV = r"\\kellyg\python\manage_AgolUser.csv"
-openedfile = open(CSV, 'r')
-openedfile.readline()
-openedfile.readline()
 
-for line in openedfile:
-    line = readLine(openedfile)
-    invitelist = inviteUsers(line)
-#invitelist = inviteUsers(line)
+##CSV = r"\\kellyg\python\manage_AgolUser.csv"
+##openedfile = open(CSV, 'r')
+##openedfile.readline()
+##openedfile.readline()
+##
+##while True:
+##
+##  line = readLine(openedfile)
+##  print len(line)
+##  if not line:
+##    break
+##  else:
+##    invitelist = inviteUsers(line)
+##return line
+
+
 updateUser()
 

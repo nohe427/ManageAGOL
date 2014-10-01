@@ -1,5 +1,5 @@
 #-------------------------------------------------------------------------------
-# Name:        module1
+# Name:        ManageUsers
 # Purpose:
 #
 # Author:      kell6873
@@ -171,3 +171,4 @@ if __name__ == "__main__":
 
 
 updateUser()
+

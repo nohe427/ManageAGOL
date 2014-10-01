@@ -57,24 +57,6 @@ def readLine(openedfile):
     splitstring = line.split(",")
     return splitstring
 
-
-if __name__ == "__main__":
-
-    CSV = r"\\kellyg\python\manage_AgolUser.csv"
-    openedfile = open(CSV, 'r')
-    openedfile.readline()
-    openedfile.readline()
-    t=True
-
-    while t == True:
-        line = readLine(openedfile)
-        print len(line)
-        if len(line)<0:
-            t =False
-        else:
-            invitelist = inviteUsers(line)
-    #return line
-
 def inviteUsers(line):
     #invite users from spreadsheet
     invitelist =[]
@@ -124,23 +106,53 @@ def updateUser():
          response = requests.post(updateURL, data=data, verify=False).json()
          print response
 
-#variables
-user = 'Karate_Kelly'#raw_input("Admin username:")
-pw  = 'Browncow1'#raw_input("Password:")
+
+if __name__ == "__main__":
+    #variables
+    user = 'Karate_Kelly'#raw_input("Admin username:")
+    pw  = 'Browncow1'#raw_input("Password:")
+
+    token = getToken(user, pw)
+    aInfo = accountInfo(token)
+    urlKey = aInfo[0]
+    orgName= aInfo[1]
+    orgFullName = aInfo[2]
+    adminEmail = aInfo[3]
+
+    CSV = r"\\kellyg\python\manage_AgolUser.csv"
+    openedfile = open(CSV, 'r')
+    openedfile.readline()
+    openedfile.readline()
+
+
+    while True:
+        line = readLine(openedfile)
+        print len(line)
+        #invitelist = inviteUsers(line)
+        if len(line) == 1:
+            break
+        else:
+            invitelist = inviteUsers(line)
+
+
+
+###variables
+##user = 'Karate_Kelly'#raw_input("Admin username:")
+##pw  = 'Browncow1'#raw_input("Password:")
 
 #open file
 ##fileLoc = '\\\\kellyg\python\manage_AgolUser.csv' #'raw_input("Put in the file path to store the data here \nExample: C:\Documents\FILE.csv \n")
 ##f=open(fileLoc, "r")
 
-
-
-#get token and URL Key
-token = getToken(user, pw)
-aInfo = accountInfo(token)
-urlKey = aInfo[0]
-orgName= aInfo[1]
-orgFullName = aInfo[2]
-adminEmail = aInfo[3]
+##
+##
+###get token and URL Key
+##token = getToken(user, pw)
+##aInfo = accountInfo(token)
+##urlKey = aInfo[0]
+##orgName= aInfo[1]
+##orgFullName = aInfo[2]
+##adminEmail = aInfo[3]
 
 ##CSV = r"\\kellyg\python\manage_AgolUser.csv"
 ##openedfile = open(CSV, 'r')

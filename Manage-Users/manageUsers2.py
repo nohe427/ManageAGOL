@@ -108,31 +108,32 @@ def updateUser():
          response = requests.post(updateURL, data=data, verify=False).json()
          print response
 
-#variables
-user = 'Karate_Kelly'#raw_input("Admin username:")
-pw  = 'Browncow1'#raw_input("Password:")
-
-#open file
-##fileLoc = '\\\\kellyg\python\manage_AgolUser.csv' #'raw_input("Put in the file path to store the data here \nExample: C:\Documents\FILE.csv \n")
-##f=open(fileLoc, "r")
-
-
-
-#get token and URL Key
-token = getToken(user, pw)
-aInfo = accountInfo(token)
-urlKey = aInfo[0]
-orgName= aInfo[1]
-orgFullName = aInfo[2]
-adminEmail = aInfo[3]
-CSV = r"\\kellyg\python\manage_AgolUser.csv"
-openedfile = open(CSV, 'r')
-openedfile.readline()
-openedfile.readline()
-
-for line in openedfile:
-    line = readLine(openedfile)
-    invitelist = inviteUsers(line)
-#invitelist = inviteUsers(line)
-updateUser()
+if __name__ == "__main__":
+    #variables
+    user = 'Karate_Kelly'#raw_input("Admin username:")
+    pw  = 'Browncow1'#raw_input("Password:")
+    
+    #open file
+    ##fileLoc = '\\\\kellyg\python\manage_AgolUser.csv' #'raw_input("Put in the file path to store the data here \nExample: C:\Documents\FILE.csv \n")
+    ##f=open(fileLoc, "r")
+    
+    
+    
+    #get token and URL Key
+    token = getToken(user, pw)
+    aInfo = accountInfo(token)
+    urlKey = aInfo[0]
+    orgName= aInfo[1]
+    orgFullName = aInfo[2]
+    adminEmail = aInfo[3]
+    CSV = r"\\kellyg\python\manage_AgolUser.csv"
+    openedfile = open(CSV, 'r')
+    openedfile.readline()
+    openedfile.readline()
+    
+    for line in openedfile:
+        line = readLine(openedfile)
+        invitelist = inviteUsers(line)
+    #invitelist = inviteUsers(line)
+    updateUser()
 

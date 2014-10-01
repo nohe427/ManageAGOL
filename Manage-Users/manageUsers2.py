@@ -1,5 +1,5 @@
 #-------------------------------------------------------------------------------
-# Name:        module1
+# Name:        ManageUsers
 # Purpose:
 #
 # Author:      kell6873
@@ -219,3 +219,4 @@ adminEmail = aInfo[3]
 =======
 >>>>>>> origin/master
 updateUser()
+

@@ -1,6 +1,9 @@
 #-------------------------------------------------------------------------------
-# Name:        ManageUsers
-# Purpose:
+# Name:        Create Users Template
+# Purpose:      Creates users and updates them to have specific roles upon initial
+#               Login. Reads usernames from a list and updates users to have
+#               My Esri Access Enabled, public searchable account,
+#               users are entitled a pro license
 #
 # Author:      kell6873
 #
@@ -78,24 +81,12 @@ def inviteUsers(line):
         #invitationlist = '{"invitations":[{"email":"'+line[2]+'","role":"' +rID +'"}]}'
 
 
-    return invitelist
-
-
 def updateUser(line):
-    #  Provisions new users Pro Entitlements
-       proUrl= 'http://{}.maps.arcgis.com/sharing/rest/content/listings/2d2a9c99bb2a43548c31cd8e32217af6/provisionUserEntitlements'.format(urlKey)
-       data = {'f':'json', 'token':token ,'userEntitlements':'{"users":["'+line[0]+'"],"entitlements":["desktopAdvN","spatialAnalystN","3DAnalystN","networkAnalystN","geostatAnalystN","dataReviewerN","workflowMgrN","dataInteropN"]}'}
-       response = requests.post(proUrl, data=data, verify=False).json()
 
-      #updates user role to Administrator
-       updateURL = 'http://{}.maps.arcgis.com/sharing/rest/portals/self/updateUserRole'.format(urlKey)
-       data ={'f':'json', 'token':token ,'user':line[0],'role':'account_admin'}
-       response = requests.post(updateURL, data=data, verify=False).json()
-
-        #updates description, Enables My Esri Access and makes account searchable to public
+       #updates description, Enables My Esri Access and makes account searchable to public
        userURL ='https://{}.maps.arcgis.com/sharing/rest/community/users/{}/update'.format(urlKey, line[0])
-       #data = {'f':'json','usertype':'both','description': line[1], 'access':'public','token':token}
-       data = {'f':'json','description': line[1], 'access':'public','token':token}
+       data = {'f':'json','usertype':'both','description': line[1], 'access':'public','token':token}
+       #data = {'f':'json','description': line[1], 'access':'public','token':token}
        response = requests.post(userURL, data=data, verify=False).json()
        #print response
 
@@ -129,44 +120,8 @@ if __name__ == "__main__":
         if len(line) == 1:
             break
         else:
-            invitelist = inviteUsers(line)
+            inviteUsers(line)
             updateUser(line)
-
-
-
-###variables
-##user = 'Karate_Kelly'#raw_input("Admin username:")
-##pw  = 'Browncow1'#raw_input("Password:")
-
-#open file
-##fileLoc = '\\\\kellyg\python\manage_AgolUser.csv' #'raw_input("Put in the file path to store the data here \nExample: C:\Documents\FILE.csv \n")
-##f=open(fileLoc, "r")
-
-##
-##
-###get token and URL Key
-##token = getToken(user, pw)
-##aInfo = accountInfo(token)
-##urlKey = aInfo[0]
-##orgName= aInfo[1]
-##orgFullName = aInfo[2]
-##adminEmail = aInfo[3]
-
-##CSV = r"\\kellyg\python\manage_AgolUser.csv"
-##openedfile = open(CSV, 'r')
-##openedfile.readline()
-##openedfile.readline()
-##
-##while True:
-##
-##  line = readLine(openedfile)
-##  print len(line)
-##  if not line:
-##    break
-##  else:
-##    invitelist = inviteUsers(line)
-##return line
-
 
 
 

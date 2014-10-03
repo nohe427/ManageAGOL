@@ -43,10 +43,6 @@ def userInfo():
     userDict = {'fullName':jres['fullName'], 'firstName':jres['firstName'], 'lastName': jres['lastName'], 'description':jres['description'], 'email':jres['email'], 'userType': jres['userType'], 'access': jres['access'],'role':jres['role'], 'tags':jres['tags'], 'culture':jres['culture'], 'region':jres['region'], 'thumbnail':jres['thumbnail'] }
     return userDict
 
-
-
-
-
 def verifyUser():
     maxURL ='http://{}.maps.arcgis.com/sharing/rest/portals/self/users'.format(URLKey)
     request = maxURL +"?f=json&token="+token
@@ -135,10 +131,6 @@ def delUser():
        userURL ='http://{}.maps.arcgis.com/sharing/rest/community/users/{}/delete'.format(URLKey, remUser)
        data = {'f':'json', 'token':token}
        response=requests.post(userURL, data=data).json()
-       #if response['success'] is True:
-        #    print 'Deleted the following user: ' +remUser
-       #else:
-        #    print 'user was not deleted'
 
 def inviteUser():
     #invite users from spreadsheet
@@ -164,45 +156,27 @@ def inviteUser():
 def assignContent(defaultLst,folderLst):
     if folderLst:
         for item in folderLst['Folders']:
-            urlFol ='http://{}.arcgis.com/sharing/rest/content/users/{}/createFolder'.format(URLKey,remUser)
+            urlFol ='http://{}.maps.arcgis.com/sharing/rest/content/users/{}/createFolder'.format(URLKey,remUser)
             data = {'title': item['folderName'], 'folderName': item['folderName'],'f':'json', 'token':token}
             response = requests.post(urlFol, data=data, verify=False).json()
+            for row in item['items']:
+                for id in row:
+                    raURL='http://{}.maps.arcgis.com/sharing/rest/content/users/{}/items/{}/reassign'.format(URLKey,user,id)
+                    data = {'targetUsername':remUser, 'targetFolderName':item['folderName'], 'f':'json', 'token':token}
+                    tjres = requests.post(raURL, data=data, verify=False).json()
+    if defaultLst:
+         for id in defaultLst:
+            raURL='http://{}.maps.arcgis.com/sharing/rest/content/users/{}/items/{}/reassign'.format(URLKey,user,id)
+            data = {'targetUsername':remUser, 'targetFolderName':'/', 'f':'json', 'token':token}
+            tjres = requests.post(raURL, data=data, verify=False).json()
+def assignGroups(grouplst):
+    for item in grouplst:
+        reassignURL = 'http://{}.maps.arcgis.com/sharing/rest/community/groups/{}/reassign'.format(URLKey,item)
+        data = {'f':'json', 'targetUsername': remUser,'token':token}
+        response=requests.post(reassignURL, data=data).json()
 
 
-##    itemURL ='http://{}.maps.arcgis.com/sharing/rest/content/users/{}'.format(URLKey, remUser)
-##    request = itemURL +"?f=json&token="+token
-##    response = requests.get(request)
-##    jres = json.loads(response.text)
-##    defaultFolderLst = []
-##    if jres['items']:
-##        for item in jres['items']:
-##           raURL='http://{}.maps.arcgis.com/sharing/rest/content/users/{}/items/{}/reassign'.format(URLKey,remUser,item['id'])
-##           data = {'targetUsername':user, 'targetFolderName':'/', 'f':'json', 'token':token}
-##           tjres = requests.post(raURL, data=data, verify=False).json()
-##           defaultFolderLst.append(item['id'])
-##
-##
-##    if jres['folders']:
-##        '''Delete content stored in folders'''
-##        folderLst = {'Folders': []}
-##
-##        for folder in jres['folders']:
-##             foldercontentURL ='http://{}.maps.arcgis.com/sharing/rest/content/users/{}/{}?f=json&token={}'.format(URLKey, remUser, folder['id'], token)
-##             response = requests.get(foldercontentURL)
-##             jres = json.loads(response.text)
-##
-##             #itemlist=[]
-##             if jres['items']:
-##                itemlist=[]
-##                for item in jres['items']:
-##                    itemlist.append(item['id'])
-##                    rcfURL ='http://{}.maps.arcgis.com/sharing/rest/content/users/{}/{}/items/{}/reassign'.format(URLKey,remUser,folder['id'],item['id'])
-##                    data = {'targetUsername':user, 'targetFolderName':'/', 'f':'json', 'token':token}
-##                    jres = requests.post(rcfURL, data=data, verify=False).json()
-##
-##
-##                folderLst['Folders'].append({'items':[itemlist],'folderName':folder['title'], 'folderID':folder['id']})
-##    return defaultFolderLst, folderLst
+
 
 
 if __name__ == '__main__':
@@ -234,18 +208,10 @@ if __name__ == '__main__':
         delUser()
         inviteUser()
         assignContent(defaultLst, folderLst)
-        #assigngroups()
+        assignGroups(grouplst)
 
 
 
 
-    #delete user content:
-    #delCont = delContent(userlist, URLKey, token)
-
-    #delete user groups
-    #delGroup = delGroups(userlist, URLKey, token)
-
-    #delete user
-    #delUsers = delUser(userlist, URLKey, token)
 
 

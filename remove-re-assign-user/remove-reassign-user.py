@@ -1,7 +1,7 @@
 #-------------------------------------------------------------------------------
-# Name:             Removes User and re-invites user
-# Purpose:          Parse through users based on role and remove them from t
-#                   the organizaiton, including deleting all content and groups
+# Name:             Removes User and re-invites user and reassigns content
+# Purpose:          To overcome an issue with abondonned pro licesnes, this will
+#                   remove and re-add the user, returning the pro-license to the organization
 #
 # Author:     Kelly Gerrow
 #
@@ -29,12 +29,14 @@ def getToken(user, pw):
     jres = requests.post(url, data=data, verify=False).json()
     return jres['token']
 
+#retreives organizaiton account information
 def accountInfo():
     URL= 'http://www.arcgis.com/sharing/rest/portals/self?f=json&token=' + token
     response = requests.get(URL)
     jres = json.loads(response.text)
     return jres
 
+#makes a dictionary of user information to be applied when the user is re-added
 def userInfo():
     url ='http://{}.maps.arcgis.com/sharing/rest/community/users/{}'.format(URLKey,remUser)
     request = url +"?f=json&token="+token
@@ -43,6 +45,7 @@ def userInfo():
     userDict = {'fullName':jres['fullName'], 'firstName':jres['firstName'], 'lastName': jres['lastName'], 'description':jres['description'], 'email':jres['email'], 'userType': jres['userType'], 'access': jres['access'],'role':jres['role'], 'tags':jres['tags'], 'culture':jres['culture'], 'region':jres['region'], 'thumbnail':jres['thumbnail'] }
     return userDict
 
+#verifies the correct case of the username
 def verifyUser():
     maxURL ='http://{}.maps.arcgis.com/sharing/rest/portals/self/users'.format(URLKey)
     request = maxURL +"?f=json&token="+token
@@ -64,10 +67,13 @@ def verifyUser():
         start+=number
     return delUser, foundUser
 
+#assigns content to the administrative user running the script. Creates dictionaries
+#to reassign content after the user is re-added
 def reassignContent():
     '''Deletes all of a user's content including protected content and content
     stored in additional folders.'''
 
+    #finds and reassigns content in the default folder
     itemURL ='http://{}.maps.arcgis.com/sharing/rest/content/users/{}'.format(URLKey, remUser)
     request = itemURL +"?f=json&token="+token
     response = requests.get(request)
@@ -80,7 +86,7 @@ def reassignContent():
            tjres = requests.post(raURL, data=data, verify=False).json()
            defaultFolderLst.append(item['id'])
 
-
+    #finds and reassigns content in any folders
     if jres['folders']:
         '''Delete content stored in folders'''
         folderLst = {'Folders': []}
@@ -104,7 +110,7 @@ def reassignContent():
     return defaultFolderLst, folderLst
 
 
-
+#Reassigns Groups to the administrator running the script
 def reassignGroups():
 
         groupURL ='http://{}.maps.arcgis.com/sharing/rest/community/users/{}'.format(URLKey, remUser)
@@ -120,7 +126,7 @@ def reassignGroups():
             grouplst.append(item['id'])
         return grouplst
 
-
+#Deletes that account after removing My Esri access (this returns the license)
 def delUser():
        #disable MyEsri Access to completly delete the account
        updateURL ='https://{}.maps.arcgis.com/sharing/rest/community/users/{}/update'.format(URLKey, remUser)
@@ -132,28 +138,31 @@ def delUser():
        data = {'f':'json', 'token':token}
        response=requests.post(userURL, data=data).json()
 
+#readds the user without sending an email invitation.
 def inviteUser():
-    #invite users from spreadsheet
-    url = 'http://{}.maps.arcgis.com/sharing/rest/portals/self/invite'.format(URLKey)
-    #subject and text for email
-    subject = 'An invitation to join an ArcGIS Online Organization, ' + accountInfo['name'] + '. DO NOT REPLY'
-    text = '<html><body><p>' + user+ ' has invited you to join an ArcGIS Online Organization, ' +accountInfo['name'] + '. Please click this link to join:<br><a href="https://www.arcgis.com/home/signin.html?invitation=@@invitation.id@@">https://www.arcgis.com/home/signin.html?invitation=@@invitation.id@@</a></p><p>If you have difficulty signing in, please email your administrator at hellokitty@hotmail.com. Be sure to include a description of the problem, your username, the error message, and a screenshot.</p><p>For your reference, you can access the home page of the organization here: <br>http://'+URLKey +'.maps.arcgis.com/home/</p><p>This link will expire in two weeks.</p><p style="color:gray;">This is an automated email, please do not reply.</p></body></html>'
 
+    url = 'http://{}.maps.arcgis.com/sharing/rest/portals/self/invite'.format(URLKey)
+    #subject and text for email  (required)
+    subject = 'SampleSubject'
+    text = 'some text'
     #send invitation without sending an email notification to user
     invitationlist = '{"invitations":[{"username":"'+remUser+'", "password":"Password123", "firstname":"' + userDict['firstName']+'","lastname":"'+userDict['lastName']+'","fullname":"'+userDict['fullName']+'","email":"'+userDict['email']+'","role":"org_publisher"}]}'
     data={'subject':subject, 'html':text, 'invitationlist':invitationlist,'f':'json', 'token':token}
     jres = requests.post(url, data=data, verify=False).json()
 
-    #updates description, Enables My Esri Access and makes account searchable to public
+    #updates account information collected originally
     userURL ='https://{}.maps.arcgis.com/sharing/rest/community/users/{}/update'.format(URLKey, remUser)
     data = {'f':'json','usertype': userDict['userType'],'description': userDict['description'], 'access':userDict['access'],'tags':userDict['tags'], 'culture':userDict['culture'], 'region':userDict['region'], 'thumbnail':userDict['thumbnail'],'token':token}
     response = requests.post(userURL, data=data, verify=False).json()
 
+    #updates role to previous role
     updateURL = 'http://{}.maps.arcgis.com/sharing/rest/portals/self/updateUserRole'.format(URLKey)
     data ={'f':'json', 'token':token ,'user':remUser,'role':userDict['role']}
     response = requests.post(updateURL, data=data, verify=False).json()
 
+#Assigns content back to original user
 def assignContent(defaultLst,folderLst):
+    #re-assigns content into created folders
     if folderLst:
         for item in folderLst['Folders']:
             urlFol ='http://{}.maps.arcgis.com/sharing/rest/content/users/{}/createFolder'.format(URLKey,remUser)
@@ -164,28 +173,28 @@ def assignContent(defaultLst,folderLst):
                     raURL='http://{}.maps.arcgis.com/sharing/rest/content/users/{}/items/{}/reassign'.format(URLKey,user,id)
                     data = {'targetUsername':remUser, 'targetFolderName':item['folderName'], 'f':'json', 'token':token}
                     tjres = requests.post(raURL, data=data, verify=False).json()
+
+    #re-assigns content into default directories
     if defaultLst:
          for id in defaultLst:
             raURL='http://{}.maps.arcgis.com/sharing/rest/content/users/{}/items/{}/reassign'.format(URLKey,user,id)
             data = {'targetUsername':remUser, 'targetFolderName':'/', 'f':'json', 'token':token}
             tjres = requests.post(raURL, data=data, verify=False).json()
+
+#re-assigns group
 def assignGroups(grouplst):
     for item in grouplst:
         reassignURL = 'http://{}.maps.arcgis.com/sharing/rest/community/groups/{}/reassign'.format(URLKey,item)
         data = {'f':'json', 'targetUsername': remUser,'token':token}
         response=requests.post(reassignURL, data=data).json()
 
-
-
-
-
 if __name__ == '__main__':
 
     #variables
-    user = 'essIsoOne'# raw_input("Admin username:")
-    pw  = 'essIsoOne'#raw_input("Password:")
+    user = raw_input("Admin username:")
+    pw  = raw_input("Password:")
 
-    remUser= 'poopy1'#raw_input("Which user needs to be removed?")
+    remUser= raw_input("Which user needs to be reset?")
 
 
     #get token and URL Key
@@ -194,7 +203,7 @@ if __name__ == '__main__':
     URLKey = accountInfo['urlKey']
 
 
-    #get list of users to be removed
+    #verify the case of the username and executes functions
     userCase = verifyUser()
     remUser = userCase[0]
     userDict= userInfo()

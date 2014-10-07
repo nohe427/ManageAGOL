@@ -117,14 +117,19 @@ def reassignGroups():
         request = groupURL +"?f=json&token="+token
         response = requests.get(request)
         jres = json.loads(response.text)
-        grouplst=[]
+        groupOlst=[]
+        groupMlst=[]
         for item in jres['groups']:
-            reassignURL = 'http://{}.maps.arcgis.com/sharing/rest/community/groups/{}/reassign'.format(URLKey,item['id'])
-            data = {'f':'json', 'targetUsername': user,'token':token}
-            response=requests.post(reassignURL, data=data).json()
-            print response
-            grouplst.append(item['id'])
-        return grouplst
+            if item['userMembership']['memberType'] == 'owner':
+                reassignURL = 'http://{}.maps.arcgis.com/sharing/rest/community/groups/{}/reassign'.format(URLKey,item['id'])
+                data = {'f':'json', 'targetUsername': user,'token':token}
+                response=requests.post(reassignURL, data=data).json()
+                print response
+                groupOlst.append(item['id'])
+            elif item['userMembership']['memberType'] == 'member' :
+                groupMlst.append(item['id'])
+
+        return groupOlst, groupMlst
 
 #Deletes that account after removing My Esri access (this returns the license)
 def delUser():
@@ -182,11 +187,17 @@ def assignContent(defaultLst,folderLst):
             tjres = requests.post(raURL, data=data, verify=False).json()
 
 #re-assigns group
-def assignGroups(grouplst):
-    for item in grouplst:
+def assignGroups(groupOlst):
+    for item in groupOlst:
         reassignURL = 'http://{}.maps.arcgis.com/sharing/rest/community/groups/{}/reassign'.format(URLKey,item)
         data = {'f':'json', 'targetUsername': remUser,'token':token}
         response=requests.post(reassignURL, data=data).json()
+def readdGroups(groupAlst):
+    for item in groupOlst:
+        AddURL = 'http://{}.maps.arcgis.com/sharing/rest/community/groups/{}/addUsers'.format(URLKey,item)
+        data = {'f':'json', 'users': remUser,'token':token}
+        response=requests.post(AddURL, data=data).json()
+
 
 if __name__ == '__main__':
 
@@ -214,10 +225,12 @@ if __name__ == '__main__':
         defaultLst = lists[0]
         folderLst=lists[1]
         grouplst=reassignGroups()
+        groupOlst = grouplst[0]
+        groupMlst = grouplst[1]
         delUser()
         inviteUser()
         assignContent(defaultLst, folderLst)
-        assignGroups(grouplst)
+        assignGroups(groupOlst)
 
 
 

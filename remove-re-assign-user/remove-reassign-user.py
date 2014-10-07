@@ -231,6 +231,7 @@ if __name__ == '__main__':
         inviteUser()
         assignContent(defaultLst, folderLst)
         assignGroups(groupOlst)
+        readdGroups(groupMlst)
 
 
 

@@ -42,7 +42,13 @@ def userInfo():
     request = url +"?f=json&token="+token
     response = requests.get(request)
     jres = json.loads(response.text)
-    userDict = {'fullName':jres['fullName'], 'firstName':jres['firstName'], 'lastName': jres['lastName'], 'description':jres['description'], 'email':jres['email'], 'userType': jres['userType'], 'access': jres['access'],'role':jres['role'], 'tags':jres['tags'], 'culture':jres['culture'], 'region':jres['region'], 'thumbnail':jres['thumbnail'] }
+    userDict = {}
+    allvals = ['fullName', 'firstName', 'lastName', 'description', 'email', 'userType', 'access', 'role', 'tags', 'culture', 'region', 'thumbnail']
+    for val in allvals:
+        try:
+            userDict[val] = jres[val]
+        except KeyError:
+            userDict[val] = "Not Found"
     return userDict
 
 #verifies the correct case of the username
@@ -64,8 +70,9 @@ def verifyUser():
             if item['username'].lower() == remUser.lower():
                 delUser = item['username']
                 foundUser = True
+                return delUser, foundUser
         start+=number
-    return delUser, foundUser
+    return foundUser
 
 #assigns content to the administrative user running the script. Creates dictionaries
 #to reassign content after the user is re-added
@@ -107,7 +114,11 @@ def reassignContent():
 
 
                 folderLst['Folders'].append({'items':[itemlist],'folderName':folder['title'], 'folderID':folder['id']})
-    return defaultFolderLst, folderLst
+    try:
+        folderLst
+    except UnboundLocalError:
+        folderLst = []
+        return defaultFolderLst, folderLst
 
 
 #Reassigns Groups to the administrator running the script
@@ -216,11 +227,12 @@ if __name__ == '__main__':
 
     #verify the case of the username and executes functions
     userCase = verifyUser()
-    remUser = userCase[0]
-    userDict= userInfo()
-    if userCase[1] == False:
+    if userCase == False:
         print 'Please restart as the username is not located in this organization'
     else:
+        remUser = userCase[0]
+        userDict= userInfo()
+
         lists = reassignContent()
         defaultLst = lists[0]
         folderLst=lists[1]

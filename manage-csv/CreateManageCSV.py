@@ -12,13 +12,13 @@
 import os, os.path
 import sys
 import urllib2, urllib, requests
-import json
+import json, time, datetime
 
 
 
 # Function to return a token for this session
-def getToken(user, pw):
-    data = {'username': user,
+def getToken(adminUser, pw):
+    data = {'username': adminUser,
         'password': pw,
         'referer' : 'https://www.arcgis.com',
         'f': 'json'}
@@ -56,14 +56,17 @@ def CreateUserlist(token, URLKey):
            userLst.append("")
            userLst.append("")
            userLst.append("")
+           userLst.append("")
            userDict.append(userLst)
         start +=number
     return userDict
+
 def roleDict():
     roleUrl= 'http://www.arcgis.com/sharing/rest/portals/self/roles?f=json&token=' + token
     response = requests.get(roleUrl)
     jres = json.loads(response.text)
     return jres
+
 def roleName1(roleID):
     roleName = 'blank'
     for item in roleDict['roles']:
@@ -79,9 +82,6 @@ def roleName1(roleID):
             roleName= 'User'
     user[6]=roleName
 
-##def analyzeUsers(userlist):
-##    for item in userlist
-
 def writeCSV(f):
     #updates list to record which emails have been sent to the users
     for user in userlist:
@@ -90,7 +90,7 @@ def writeCSV(f):
                 user[i] = user[i]
             else:
                 user[i] = 'none'
-        f.write(user[0]+ "," + user[1]+ "," +user[2]+"," +user[3]+"," +user[4]+"," +user[5]+","+user[6]+","+user[7]+","+user[8]+","+user[9]+"\n")
+        f.write(user[0]+ "," + user[1]+ "," +user[2]+"," +user[3]+"," +user[4]+"," +user[5]+","+user[6]+","+user[7]+","+user[8]+","+user[9]+","+user[10]+"\n")
 
 def Analyze(user):
     #Identifies users with no description
@@ -103,30 +103,48 @@ def Analyze(user):
     for email in userlist:
         if user[0] != email[0] and user[3] == email[3]:
             user[8] = 'Duplicate'
-#variable
-user = raw_input("Admin username:")
-pw  = raw_input("Password:")
 
-#get token and URL Key
-token = getToken(user, pw)
-URLKey = GetURL(token)
+def appendCreditInfo(user):
+    startTime =int(time.time()) -2629743
+    EndTime = int(time.time())
+    str_ST = str(startTime) + '000'
+    str_ET =str(EndTime) + '000'
+    creditURL ='http://www.arcgis.com/sharing/rest/portals/{}/usage?'.format(orgID)
+    request ="f=json&startTime="+str_ST+"&endTime="+str_ET+"&period=1d&username="+user[0]+"&vars=credits%2Cstg&groupby=stype%2Cetype&token=" +token
+    req = creditURL+request
+    response = requests.get(req)
+    jres = json.loads(response.text)
+    creds=0
+    for item in jres['data']:
+        for x in item['credits']:
+            creds += float(x[1])
+    user[10]=creds
 
-#create a file and add header
-fileLoc = raw_input("Put in the file path to store the data here \nExample: C:\Documents\FILE.csv \n")
-f=open(fileLoc, "w")
-header="Username,Full Name, Description,Email,Type, Access,Role,Action,duplicate,hasDesc\n"
-f.write(header)
+if __name__ == '__main__':
+    #variable
+    adminUser = raw_input("Admin username:")
+    pw  = raw_input("Password:")
+
+    #get token and URL Key
+    token = getToken(adminUser, pw)
+    URLKey = GetURL(token)
+
+    #create a file and add header
+    fileLoc = raw_input("Put in the file path to store the data here \nExample: C:\Documents\FILE.csv \n")
+    f=open(fileLoc, "w")
+    header="Username,Full Name, Description,Email,Type, Access,Role,Action,duplicate,hasDesc,credits\n"
+    f.write(header)
 
 
-#get list of users to be removed
-userlist = CreateUserlist(token,URLKey)
-roleDict =roleDict()
-print userlist
-for user in userlist:
-    roleName= roleName1(str(user[6]))
-    Analyze(user)
+    #get list of users to be removed
+    userlist = CreateUserlist(token,URLKey)
+    roleDict =roleDict()
+    print userlist
+    for user in userlist:
+        roleName= roleName1(str(user[6]))
+        Analyze(user)
+        appendCreditInfo(user)
 
-writeCSV(f)
 
-#analyzeUser = Analyze(token, userlist)
-f.close()
+    writeCSV(f)
+    f.close()

@@ -14,15 +14,7 @@ import sys
 import urllib2, urllib, requests
 import json
 
-#variables
-user = 'Karate_Kelly'#raw_input("Admin username:")
-pw  = 'Browncow1'#raw_input("Password:")
 
-#create a file and add header
-#fileLoc = 'c:\python\manageCSV6print userlist.csv'#'raw_input("Put in the file path to store the data here \nExample: C:\Documents\FILE.csv \n")
-#f=open(fileLoc, "w")
-#header="Username,Description,Email,Full Name,Role,Action\n"
-#f.write(header)
 
 # Function to return a token for this session
 def getToken(user, pw):
@@ -48,25 +40,33 @@ def CreateUserlist(token, URLKey):
     jres = json.loads(response.text)
     maxUsers = 20 #jres['total']
     start = 1
-    number = 50
+    number = 5
     #retreive information of all users in organization
     while start < maxUsers:
         listURL ='http://{}.maps.arcgis.com/sharing/rest/portals/self/users'.format(URLKey)
         request = listURL +"?start="+str(start)+"&num="+str(number)+"&f=json&token="+token
-        response = requests.get(request).json()
-        #jres = json.loads(response.text)
-        for row in response['users']:
-            userlist[row['username']]={'description':row['description'], 'email':row['email'], 'FullName': row['fullName'], 'role':row['role']}
-            #userlist['testnum':1, row['username']]=[{'username':row['username'],'description':row['description'], 'email':row['email'], 'FullName': row['fullName'], 'role':row['role']}]
+        response = requests.get(request)
+        jres = json.loads(response.text)
+        userDict = []
+        allvals = ['username','fullName', 'description', 'email', 'userType', 'access', 'role']
+        for row in jres['users']:
+           userLst = []
+           for val in allvals:
+                userLst.append(row[val])
+           userDict.append(userLst)
+        start +=number
+    return userDict
 
-            #print str(row['username']) + str(row['description']) + str(row['email']) + str(row['fullName'])
-            #f.write("{0},{1},{2},{3},{4}\n".format(str(row['username']),
-##                                           str(row['description']),
-##                                           str(row['email']),
-##                                           str(row['fullName']),
-##                                           str(row['role'])))
-        start+=number
-    return userlist
+def writeCSV(f):
+    #updates list to record which emails have been sent to the users
+    for user in userlist:
+        for i,j in enumerate(user):
+            print i
+            if user[i]:
+                user[i] = user[i]
+            else:
+                user[i] = 'none'
+        f.write(user[0]+ "," + user[1]+ "," +user[2]+"," +user[3]+"," +user[4]+"," +user[5]+","+user[6]+"\n")
 
 def Analyze(token,userlist):
     #Identifies users with no description
@@ -80,11 +80,24 @@ def Analyze(token,userlist):
     return userlist
 
 
+
+#variable
+user = 'Karate_Kelly'#raw_input("Admin username:")
+pw  = 'Browncow1'#raw_input("Password:")
+
 #get token and URL Key
 token = getToken(user, pw)
 URLKey = GetURL(token)
 
+#create a file and add header
+fileLoc = 'c:\python\manageSupport.csv'#'raw_input("Put in the file path to store the data here \nExample: C:\Documents\FILE.csv \n")
+f=open(fileLoc, "w")
+header="Username,Full Name, Description,Email,Type, Access,Role,Action\n"
+f.write(header)
+
 #get list of users to be removed
 userlist = CreateUserlist(token,URLKey)
-analyzeUser = Analyze(token, userlist)
-#f.close()
+writeCSV(f)
+
+#analyzeUser = Analyze(token, userlist)
+f.close()

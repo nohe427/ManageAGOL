@@ -104,15 +104,15 @@ def Analyze(user):
         if user[0] != email[0] and user[3] == email[3]:
             user[8] = 'Duplicate'
 #variable
-user = 'Karate_Kelly'#raw_input("Admin username:")
-pw  = 'Browncow1'#raw_input("Password:")
+user = raw_input("Admin username:")
+pw  = raw_input("Password:")
 
 #get token and URL Key
 token = getToken(user, pw)
 URLKey = GetURL(token)
 
 #create a file and add header
-fileLoc = 'c:\python\manageSupport.csv'#'raw_input("Put in the file path to store the data here \nExample: C:\Documents\FILE.csv \n")
+fileLoc = raw_input("Put in the file path to store the data here \nExample: C:\Documents\FILE.csv \n")
 f=open(fileLoc, "w")
 header="Username,Full Name, Description,Email,Type, Access,Role,Action,duplicate,hasDesc\n"
 f.write(header)

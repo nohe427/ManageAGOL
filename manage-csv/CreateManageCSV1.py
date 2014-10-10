@@ -146,8 +146,8 @@ def countFeatures(user):
 
 if __name__ == '__main__':
     #variable
-    adminUser = 'Karate_Kelly'#raw_input("Admin username:")
-    pw  = 'Browncow1' #raw_input("Password:")
+    adminUser = raw_input("Admin username:")
+    pw  = raw_input("Password:")
 
     #get token and URL Key
     token = getToken(adminUser, pw)
@@ -156,7 +156,7 @@ if __name__ == '__main__':
     orgID = accInfo[1]
 
     #create a file and add header
-    fileLoc = r'c:\python\test1234.csv'#raw_input("Put in the file path to store the data here \nExample: C:\Documents\FILE.csv \n")
+    fileLoc = raw_input("Put in the file path to store the data here \nExample: C:\Documents\FILE.csv \n")
     f=open(fileLoc, "w")
     header="Username,Full Name, Description,Email,Type, Access,Role,Action,duplicate,hasDesc,credits, Number of Feature Services\n"
     f.write(header)

@@ -57,6 +57,7 @@ def CreateUserlist(token, URLKey):
            userLst.append("")
            userLst.append("")
            userLst.append("")
+           userLst.append("")
            userDict.append(userLst)
         start +=number
     return userDict
@@ -90,7 +91,7 @@ def writeCSV(f):
                 user[i] = user[i]
             else:
                 user[i] = 'none'
-        f.write(user[0]+ "," + user[1]+ "," +user[2]+"," +user[3]+"," +user[4]+"," +user[5]+","+user[6]+","+user[7]+","+user[8]+","+user[9]+","+str(user[10])+"\n")
+        f.write(user[0]+ "," + user[1]+ "," +user[2]+"," +user[3]+"," +user[4]+"," +user[5]+","+user[6]+","+user[7]+","+user[8]+","+user[9]+","+str(user[10])+","+str(user[11])+"\n")
 
 def Analyze(user):
     #Identifies users with no description
@@ -128,6 +129,21 @@ def appendCreditInfo(user):
             pass
         user[10]=creds
 
+def countFeatures(user):
+
+    itemURL ='http://{}.maps.arcgis.com/sharing/rest/content/users/{}'.format(URLKey, user[0])
+    request = itemURL +"?f=json&token="+token
+    response = requests.get(request)
+    jres = json.loads(response.text)
+    num = 0
+    for item in jres['items']:
+         if item['type'] == 'Feature Service':
+            for x in item['typeKeywords']:
+                if x=='Hosted Service':
+                    num +=1
+    user[11]= num
+
+
 if __name__ == '__main__':
     #variable
     adminUser = 'Karate_Kelly'#raw_input("Admin username:")
@@ -142,7 +158,7 @@ if __name__ == '__main__':
     #create a file and add header
     fileLoc = r'c:\python\test1234.csv'#raw_input("Put in the file path to store the data here \nExample: C:\Documents\FILE.csv \n")
     f=open(fileLoc, "w")
-    header="Username,Full Name, Description,Email,Type, Access,Role,Action,duplicate,hasDesc,credits\n"
+    header="Username,Full Name, Description,Email,Type, Access,Role,Action,duplicate,hasDesc,credits, Number of Feature Services\n"
     f.write(header)
 
 
@@ -155,6 +171,7 @@ if __name__ == '__main__':
         roleName= roleName1(str(user[6]))
         Analyze(user)
         appendCreditInfo(user)
+        countFeatures(user)
 
 
     writeCSV(f)

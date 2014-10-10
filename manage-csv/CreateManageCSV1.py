@@ -110,7 +110,7 @@ def creditDict():
     str_ST = str(startTime) + '000'
     str_ET =str(EndTime) + '000'
     creditURL ='http://www.arcgis.com/sharing/rest/portals/{}/usage?'.format(orgID)
-    request ="f=json&startTime="+str_ST+"&endTime="+str_ET+"&period=1d&vars=credits%2Cbw%2Cnum%2Cstg&groupby=username%2Cstype%2Cetype&token=" +token
+    request ="f=json&startTime="+str_ST+"&endTime="+str_ET+"&period=1d&vars=credits%2Cbw%2Cnum%2Cstg&groupby=username&token=" +token
 
     req = creditURL+request
     response = requests.get(req)
@@ -140,7 +140,7 @@ if __name__ == '__main__':
     orgID = accInfo[1]
 
     #create a file and add header
-    fileLoc = r'c:\python\test123.csv'#raw_input("Put in the file path to store the data here \nExample: C:\Documents\FILE.csv \n")
+    fileLoc = r'c:\python\test1234.csv'#raw_input("Put in the file path to store the data here \nExample: C:\Documents\FILE.csv \n")
     f=open(fileLoc, "w")
     header="Username,Full Name, Description,Email,Type, Access,Role,Action,duplicate,hasDesc,credits\n"
     f.write(header)

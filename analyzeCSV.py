@@ -24,6 +24,19 @@ def eMAIL(gTo, gSubject, gMsg):
    eMsg = smtplib.SMTP(gHOST)
    eMsg.sendmail(gFrom,gTo,BODY)
 
+def emailUsersUpdateDesc():
+    if line[9] == 'N':
+        message = "Hello " + line[1]+", \n\nThere is currently no description associated with your ArcGIS Online Account, " +line[0]+". As a new naming convention in the ESS organization, we request that all usernames in the organization have their group leads as their description. If you do not have a group lead, feel free to contact Kelly Gerrow about how to proceed. Please update your description to have the first and last name of your group lead. To find out how to modify your profile please look at the following link: http://doc.arcgis.com/en/arcgis-online/reference/profile.htm#GUID-A4615C09-5968-4C67-B5DD-DC796C8CD09A.\n\nPlease let me know if you have any questions, and thank you in advance!\n\nKelly"
+        Subject = "Please update your description for " +line[0]+ " in the ESS Organization"
+        eMAIL('kgerrow@esri.com', Subject, message)
+
+
+
+
+def emailGroupLeads():
+    #fields: username, Fullname, duplicate, credits, number
+    pass
+
 
 def main():
     pass
@@ -31,9 +44,9 @@ def main():
 if __name__ == "__main__":
 
      #Opens files for reading
-    inputEmails= r"C:\COI\HCEmailsoct6.txt"
-    sentEmails =r"C:\COI\SentEmail.csv"
-    crdoc = r"C:\COI\Newcrlist.txt"
+    inputCSV= r"C:\ManageAgol\user.csv"
+    GLEmails =r"C:\ManageAgol\GLEmail.csv"
+
 
     #creates date that emails are sent
     today = datetime.datetime.now()
@@ -41,49 +54,36 @@ if __name__ == "__main__":
 
 
     #Opens files
-    openedfile = open(inputEmails, 'r')
-    crreport= open(crdoc, 'w')
+    inputCSVO = open(inputCSV, 'r')
+    GLEmailO=open(GLEmails, 'r')
 
 
     #reads through COI high confidence list and extracts information
-    for line in openedfile.readlines():
-        inputInfo = line.split(";")
-        print len(inputInfo)
-        if len(inputInfo) == 1:
-            break
-        else:
-            #sets variables based on information from current line
-            #cr causing crash
-            cr= inputInfo[2]
-            #email of user who experienced crash
-            email = inputInfo[3]
-            #date of crash dump
-            date=inputInfo[4]
-            #version that experienced crash
-            verReport = inputInfo[5]
-            match=False
-            #opens file with emails that have been sent
-            outputEmail=open(sentEmails, 'r')
-            #reads through sent email list to identify potential duplicates
-            for hello in outputEmail.readlines():
-                print hello
-                splitstring = hello.split(",")
-                #verify that there is a line om file
-                if len(splitstring)>1:
-                    #identifies duplicate crashes as to not send multiple emails
-                    if splitstring[1] == email and cr==splitstring[3]:
-                        print 'emails match and CRs match'
-                        match = True
-                        pass
-                    #closes existing email file
-                    outputEmail.close()
-            #If the email has never been sent, this generates a message and sends the email
-            Subject = "ArcGIS "+ verReport[:5] +" Software Failure"
-            if match == False:
-                message = generateEmail()
-                if message != 'blank':
-                     eMAIL(email, Subject, message)
-                     updateEmail()
-    openedfile.close()
-    crreport.close()
+    for read in inputCSVO.readlines():
+        line = read.split(",")
+        emailUsersUpdateDesc()
+
+
+##            #reads through sent email list to identify potential duplicates
+##            for hello in outputEmail.readlines():
+##                print hello
+##                splitstring = hello.split(",")
+##                #verify that there is a line om file
+##                if len(splitstring)>1:
+##                    #identifies duplicate crashes as to not send multiple emails
+##                    if splitstring[1] == email and cr==splitstring[3]:
+##                        print 'emails match and CRs match'
+##                        match = True
+##                        pass
+##                    #closes existing email file
+##                    outputEmail.close()
+##            #If the email has never been sent, this generates a message and sends the email
+##            Subject = "ArcGIS "+ verReport[:5] +" Software Failure"
+##            if match == False:
+##                message = generateEmail()
+##                if message != 'blank':
+##                     eMAIL(email, Subject, message)
+##                     updateEmail()
+    inputCSVO.close()
+    GLEmailO.close()
 

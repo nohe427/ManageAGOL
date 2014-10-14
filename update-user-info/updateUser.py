@@ -33,16 +33,20 @@ def accountInfo(token):
     URL= 'http://www.arcgis.com/sharing/rest/portals/self?f=json&token=' + token
     response = requests.get(URL)
     jres = json.loads(response.text)
-    return jres['urlKey'], jres['name'], jres['user']['fullName'], jres['user']['email']
+    return jres['urlKey']
 
-def roleID(roleName, token):
-    # matches role name with role id.
+def roleDict():
     #note, there is no error messaging so all roles must be valid
     roleUrl= 'http://www.arcgis.com/sharing/rest/portals/self/roles?f=json&token=' + token
     response = requests.get(roleUrl)
     jres = json.loads(response.text)
+    return jres
+
+def roleID(roleName):
+    # matches role name with role id.
+
     roleID = 'blank'
-    for item in jres['roles']:
+    for item in roleDict['roles']:
         #print roleName
         if roleName.lower() == item['name'].lower():
             #print roleName.lower() +item['name'].lower()
@@ -54,32 +58,28 @@ def roleID(roleName, token):
         elif roleName.lower() == 'user':
             roleID= 'account_user'
 
+    print roleID
     return roleID
 
-def readLine(openedfile):
-    #Reads file and splits contents by comma
-    line = openedfile.readline()
-    splitstring = line.split(",")
-    return splitstring
+def myEsri():
+    usertype= 'arcgisonly'
+    if line[4].lower() == 'my esri':
+        usertype='both'
+    return usertype
 
 def updateUser(line):
-    #  Provisions new users Pro Entitlements
-       proUrl= 'http://{}.maps.arcgis.com/sharing/rest/content/listings/2d2a9c99bb2a43548c31cd8e32217af6/provisionUserEntitlements'.format(urlKey)
-       data = {'f':'json', 'token':token ,'userEntitlements':'{"users":["'+line[0]+'"],"entitlements":["desktopAdvN","spatialAnalystN","3DAnalystN","networkAnalystN","geostatAnalystN","dataReviewerN","workflowMgrN","dataInteropN"]}'}
-       response = requests.post(proUrl, data=data, verify=False).json()
 
-      #updates user role to Administrator
-       updateURL = 'http://{}.maps.arcgis.com/sharing/rest/portals/self/updateUserRole'.format(urlKey)
-       data ={'f':'json', 'token':token ,'user':line[0],'role':'account_admin'}
-       response = requests.post(updateURL, data=data, verify=False).json()
-
-        #updates description, Enables My Esri Access and makes account searchable to public
+       #updates description, Enables My Esri Access and makes account searchable to public
        userURL ='https://{}.maps.arcgis.com/sharing/rest/community/users/{}/update'.format(urlKey, line[0])
-       data = {'f':'json','usertype':'both','description': line[1], 'access':'public','token':token}
-       #data = {'f':'json','description': line[1], 'access':'public','token':token}
+       data = {'f':'json','usertype':usertype,'fullName': line[1],'description': line[2], 'access':'public','token':token}
        response = requests.post(userURL, data=data, verify=False).json()
-       #print response
-
+       print response
+def updateUserRole():
+    #updates user role to Administrator
+       updateURL = 'http://{}.maps.arcgis.com/sharing/rest/portals/self/updateUserRole'.format(urlKey)
+       data ={'f':'json', 'token':token ,'user':line[0],'role':rID}
+       response = requests.post(updateURL, data=data, verify=False).json()
+       print response
 
 if __name__ == "__main__":
     #Enter admin Username and password
@@ -89,29 +89,36 @@ if __name__ == "__main__":
     #Generates Token
     token = getToken(user, pw)
     #Acquires Account information of the Admin user and assigns Variables
-    aInfo = accountInfo(token)
-    urlKey = aInfo[0]
-    orgName= aInfo[1]
-    orgFullName = aInfo[2]
-    adminEmail = aInfo[3]
+    urlKey= accountInfo(token)
+
 
     #Input CSV file
-    CSV = r"\\kellyg\python\manage_AgolUser.csv"
+    CSV = r"input file"
+
+    #get role
+    roleDict = roleDict()
 
     #Open CSV file and Read first header line
     openedfile = open(CSV, 'r')
-    openedfile.readline()
+
 
     #Lops through CSV file to invite users and update account information
-    while True:
-        line = readLine(openedfile)
-        print len(line)
-        #invitelist = inviteUsers(line)
-        if len(line) == 1:
-            break
-        else:
-            inviteUsers(line)
+    for x in openedfile.readlines():
+        print x
+        line = x.split(",")
+        action= line[11]
+        if line[11].lower()=='update\n':
+            rID =roleID(line[5])
+            usertype= myEsri()
             updateUser(line)
+            updateUserRole()
+
+        else:
+            print 'no'
+
+
+
+
 
 
 

@@ -57,7 +57,6 @@ def CreateUserlist(token, URLKey):
            userLst.append("")
            userLst.append("")
            userLst.append("")
-           userLst.append("")
            userDict.append(userLst)
         start +=number
     return userDict
@@ -83,12 +82,6 @@ def roleName1(roleID):
             roleName= 'User'
     user[5]=roleName
 
-def MyEsri(userType):
-    if userType == 'both':
-        user[4] = 'My Esri'
-    elif userType == 'arcgisonly':
-        user[4]= "ArcGIS Online"
-
 def writeCSV(f):
     #updates list to record which emails have been sent to the users
     for user in userlist:
@@ -97,15 +90,15 @@ def writeCSV(f):
                 user[i] = user[i]
             else:
                 user[i] = 'none'
-        f.write(user[0]+ "," + user[1]+ "," +user[2]+"," +user[3]+"," +user[4]+"," +user[5]+","+user[6]+","+user[7]+","+user[8]+","+str(user[9])+","+str(user[10])+","+user[11]+"\n")
+        f.write(user[0]+ "," + user[1]+ "," +user[2]+"," +user[3]+"," +user[4]+"," +user[5]+","+user[6]+","+user[7]+","+user[8]+","+user[9]+","+str(user[10])+","+str(user[11])+"\n")
 
 def Analyze(user):
     #Identifies users with no description
     if not user[2]:
         user[2] = 'none'
-        user[8] = 'N'
+        user[9] = 'N'
     else:
-        user[8] = 'Y'
+        user[9] = 'Y'
     #find duplicate users
     for email in userlist:
         if user[0] != email[0] and user[3] == email[3]:
@@ -125,7 +118,7 @@ def creditDict():
     return jres
 
 def appendCreditInfo(user):
-    creds = 0
+    creds=0
     for item in creditDict['data']:
         try:
             if user[0] == item['username']:
@@ -133,9 +126,10 @@ def appendCreditInfo(user):
                     creds += float(x[1])
         except KeyError:
             pass
-        user[9]=creds
+        user[10]=creds
 
 def countFeatures(user):
+
     itemURL ='http://{}.maps.arcgis.com/sharing/rest/content/users/{}'.format(URLKey, user[0])
     request = itemURL +"?f=json&token="+token
     response = requests.get(request)
@@ -146,7 +140,7 @@ def countFeatures(user):
             for x in item['typeKeywords']:
                 if x=='Hosted Service':
                     num +=1
-    user[10]= num
+    user[11]= num
 def proDict():
     url = 'http://{}.maps.arcgis.com/sharing/rest/content/listings/2d2a9c99bb2a43548c31cd8e32217af6/userEntitlements'.format(URLKey)
     request = url +"?f=json&token="+token
@@ -167,6 +161,14 @@ def proEntitlement(user):
                     level = 'Standard'
             user[6]=level
 
+
+
+
+
+
+
+
+
 if __name__ == '__main__':
     #variable
     adminUser = raw_input("Admin username:")
@@ -181,7 +183,7 @@ if __name__ == '__main__':
     #create a file and add header
     fileLoc = raw_input("Put in the file path to store the data here \nExample: C:\Documents\FILE.csv \n")
     f=open(fileLoc, "w")
-    header="Username,Full Name, Description,Email,Type, Role,Pro License,Duplicate,has Description,Credits Used, Number of Feature Services, Action\n"
+    header="Username,Full Name, Description,Email,Type, Access,Role,Action,Duplicate,has Description,Credits Used, Number of Feature Services, Pro License Level\n"
     f.write(header)
 
 
@@ -192,12 +194,11 @@ if __name__ == '__main__':
     proDict = proDict()
     print userlist
     for user in userlist:
-        roleName= roleName1(str(user[5]))
+        roleName= roleName1(str(user[6]))
         Analyze(user)
         appendCreditInfo(user)
         countFeatures(user)
         proEntitlement(user)
-        MyEsri(user[4])
 
 
     writeCSV(f)

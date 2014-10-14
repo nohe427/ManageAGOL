@@ -26,7 +26,7 @@ def eMAIL(gTo, gSubject, gMsg):
 
 def emailUsersUpdateDesc():
     if line[9] == 'N':
-        message = "Hello " + line[1]+", \n\nThere is currently no description associated with your ArcGIS Online Account, " +line[0]+". As a new naming convention in the ESS organization, we request that all usernames in the organization have their group leads as their description. If you do not have a group lead, feel free to contact Kelly Gerrow about how to proceed. Please update your description to have the first and last name of your group lead. To find out how to modify your profile please look at the following link: http://doc.arcgis.com/en/arcgis-online/reference/profile.htm#GUID-A4615C09-5968-4C67-B5DD-DC796C8CD09A.\n\nPlease let me know if you have any questions, and thank you in advance!\n\nKelly"
+        message = "Hello " + line[1]+", \n\nThere is currently no description associated with your ArcGIS Online Account, " +line[0]+". As a new naming convention in the ESS organization, we request that all usernames for Analysts in the organization have their group leads as their description. If you do not have a group lead, feel free to contact Kelly Gerrow about how to proceed. Please update your description to have the first and last name of your group lead. To find out how to modify your profile please look at the following link: http://doc.arcgis.com/en/arcgis-online/reference/profile.htm#GUID-A4615C09-5968-4C67-B5DD-DC796C8CD09A.\n\nPlease let me know if you have any questions, and thank you in advance!\n\nKelly"
         Subject = "Please update your description for " +line[0]+ " in the ESS Organization"
         eMAIL('kgerrow@esri.com', Subject, message)
 

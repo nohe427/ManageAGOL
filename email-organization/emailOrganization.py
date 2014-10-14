@@ -29,7 +29,7 @@ def getToken(user,pw):
 #email address
 def eMAIL(gTo, gSubject, gMsg):
    gHOST    = "SMTP.ESRI.COM"
-   gFrom    = "email@esri.com"
+   gFrom    = "kgerrow@esri.com"
    BODY  = string.join((
            "From: %s" % gFrom,
            "To:   %s" % gTo,
@@ -67,8 +67,8 @@ def getEmail(token, URLKey):
     return userlist
 
 #variables
-user=#username
-pw=#password
+user='Karate_Kelly'
+pw='Browncow1'
 
 #get token and URL
 token=getToken(user,pw)
@@ -79,7 +79,7 @@ emailList =getEmail(token,URLKey)
 print emailList
 
 message = #insert body of email
-subject = #subject of email (suggest starting with Do Not Reply)
+subject ='Do not Reply: Information regarding the Updates to ESS Organization Accounts'#subject of email (suggest starting with Do Not Reply)
 
 #Send the email to each user
 for email in emailList:

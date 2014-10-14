@@ -30,9 +30,6 @@ def emailUsersUpdateDesc():
         Subject = "Please update your description for " +line[0]+ " in the ESS Organization"
         eMAIL('kgerrow@esri.com', Subject, message)
 
-
-
-
 def emailGroupLeads():
     #fields: username, Fullname, duplicate, credits, number
     pass

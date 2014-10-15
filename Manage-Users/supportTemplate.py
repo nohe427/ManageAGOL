@@ -71,7 +71,7 @@ def inviteUsers(line):
     text = '<html><body><p>' + orgFullName+ ' has invited you to join an ArcGIS Online Organization, ' +orgName + '. Please click this link to join:<br><a href="https://www.arcgis.com/home/signin.html?invitation=@@invitation.id@@">https://www.arcgis.com/home/signin.html?invitation=@@invitation.id@@</a></p><p>If you have difficulty signing in, please email your administrator at '+ adminEmail+ '. Be sure to include a description of the problem, your username, the error message, and a screenshot.</p><p>For your reference, you can access the home page of the organization here: <br>http://'+urlKey +'.maps.arcgis.com/home/</p><p>This link will expire in two weeks.</p><p style="color:gray;">This is an automated email, please do not reply.</p></body></html>'
 
     #send invitation without sending an email notification to user
-    invitationlist = '{"invitations":[{"username":"'+line[0]+'", "password":"Password123", "firstname":"' + line[3]+'","lastname":"'+ line[4]+'","fullname":"'+line[3] + ' ' + line[4]+'","email":"'+line[2]+'","role":"' +rID +'"}]}'
+    invitationlist = '{"invitations":[{"username":"'+line[0]+'", "password":"Password123", "fullname":"'+line[1] + '","email":"'+line[3]+'","role":"' +rID +'"}]}'
     data={'subject':subject, 'html':text, 'invitationlist':invitationlist,'f':'json', 'token':token}
     jres = requests.post(url, data=data, verify=False).json()
 
@@ -94,7 +94,7 @@ def updateUser(line):
 
         #updates description, Enables My Esri Access and makes account searchable to public
        userURL ='https://{}.maps.arcgis.com/sharing/rest/community/users/{}/update'.format(urlKey, line[0])
-       data = {'f':'json','usertype':'both','description': line[1], 'access':'public','token':token}
+       data = {'f':'json','usertype':'both','description': line[2], 'access':'public','token':token}
        #data = {'f':'json','description': line[1], 'access':'public','token':token}
        response = requests.post(userURL, data=data, verify=False).json()
        #print response
@@ -115,7 +115,7 @@ if __name__ == "__main__":
     adminEmail = aInfo[3]
 
     #Input CSV file
-    CSV = r"\\kellyg\python\manage_AgolUser.csv"
+    CSV = r"\\kellyg\python\user.csv"
 
     #Open CSV file and Read first header line
     openedfile = open(CSV, 'r')

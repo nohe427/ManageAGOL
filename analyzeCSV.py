@@ -10,9 +10,18 @@
 #-------------------------------------------------------------------------------
 import json, time, datetime, string, smtplib
 from cookielib import CookieJar
+from email.MIMEMultipart import MIMEMultipart
+from email.MIMEBase import MIMEBase
+from email.MIMEText import MIMEText
+from email.Utils import COMMASPACE, formatdate
+from email import Encoders
 
 #emails content to users
-def eMAIL(gTo, gSubject, gMsg):
+def eMAIL(gTo, gSubject, gMsg, files=[]):
+   #Files argument needs to be a list.
+   assert isinstance(files, list)
+   
+   msg = MIMEMultipart()
    gHOST    = "SMTP.ESRI.COM"
    gFrom    = "kgerrow@esri.com"
    BODY  = string.join((
@@ -21,8 +30,23 @@ def eMAIL(gTo, gSubject, gMsg):
            "Subject: %s" % gSubject,
            "",
            gMsg), "\r")
+           
+   msg['From'] = gFrom
+   msg['To'] = COMMASPACE.join(gTo)
+   msg['Date'] = formatdate(localtime=True)
+   msg['Subject'] = gSubject
+           
+   msg.attach( MIMEText(BODY) )
+
+   for f in files:
+        part = MIMEBase('application', "octet-stream")
+        part.set_payload( open(f,"rb").read() )
+        Encoders.encode_base64(part)
+        part.add_header('Content-Disposition', 'attachment; filename="%s"' % os.path.basename(f))
+        msg.attach(part)
+   
    eMsg = smtplib.SMTP(gHOST)
-   eMsg.sendmail(gFrom,gTo,BODY)
+   eMsg.sendmail(gFrom,gTo,msg.as_string())
 
 def emailUsersUpdateDesc():
     if line[9] == 'N':
